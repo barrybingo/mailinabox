@@ -19,7 +19,7 @@ fi
 
 echo "Installing Nginx (web server)..."
 
-apt_install nginx php7.0-cli php7.0-fpm
+apt_install php7.0-cli php7.0-fpm
 
 # Set PHP7 as the default
 update-alternatives --set php /usr/bin/php7.0
