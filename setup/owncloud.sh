@@ -17,9 +17,9 @@ apt_install \
 
 apt-get purge -qq -y owncloud*
 
-apt_install php7.0 php7.0-fpm \
-	php7.0-cli php7.0-sqlite php7.0-gd php7.0-imap php7.0-curl php-pear php-apc curl \
-        php7.0-dev php7.0-gd memcached php7.0-memcached php7.0-xml php7.0-mbstring php7.0-zip php7.0-apcu
+apt_install php7.1 php7.1-fpm \
+	php7.1-cli php7.1-sqlite php7.1-gd php7.1-imap php7.1-curl php-pear php-apc curl \
+        php7.1-dev php7.1-gd memcached php7.1-memcached php7.1-xml php7.1-mbstring php7.1-zip php7.1-apcu
 
 # Migrate <= v0.10 setups that stored the ownCloud config.php in /usr/local rather than
 # in STORAGE_ROOT. Move the file to STORAGE_ROOT.
@@ -162,7 +162,7 @@ if [ ! -d /usr/local/lib/owncloud/ ] \
         || ! grep -q $owncloud_ver /usr/local/lib/owncloud/version.php; then
 
 	# Stop php-fpm if running. If theyre not running (which happens on a previously failed install), dont bail.
-	service php7.0-fpm stop &> /dev/null || /bin/true
+	service php7.1-fpm stop &> /dev/null || /bin/true
 	service php5-fpm stop &> /dev/null || /bin/true
 
 	# Backup the existing ownCloud/Nextcloud.
@@ -365,7 +365,7 @@ if [ \( $? -ne 0 \) -a \( $? -ne 3 \) ]; then exit 1; fi
 
 # Set PHP FPM values to support large file uploads
 # (semicolon is the comment character in this file, hashes produce deprecation warnings)
-tools/editconf.py /etc/php/7.0/fpm/php.ini -c ';' \
+tools/editconf.py /etc/php/7.1/fpm/php.ini -c ';' \
 	upload_max_filesize=16G \
 	post_max_size=16G \
 	output_buffering=16384 \
@@ -374,7 +374,7 @@ tools/editconf.py /etc/php/7.0/fpm/php.ini -c ';' \
 	short_open_tag=On
 
 # Set Nextcloud recommended opcache settings
-tools/editconf.py /etc/php/7.0/cli/conf.d/10-opcache.ini -c ';' \
+tools/editconf.py /etc/php/7.1/cli/conf.d/10-opcache.ini -c ';' \
 	opcache.enable=1 \
 	opcache.enable_cli=1 \
 	opcache.interned_strings_buffer=8 \
@@ -384,12 +384,12 @@ tools/editconf.py /etc/php/7.0/cli/conf.d/10-opcache.ini -c ';' \
 	opcache.revalidate_freq=1
 
 # Configure the path environment for php-fpm
-tools/editconf.py /etc/php/7.0/fpm/pool.d/www.conf -c ';' \
+tools/editconf.py /etc/php/7.1/fpm/pool.d/www.conf -c ';' \
         env[PATH]=/usr/local/bin:/usr/bin:/bin
 
 # If apc is explicitly disabled we need to enable it
-if grep -q apc.enabled=0 /etc/php/7.0/mods-available/apcu.ini; then
-	tools/editconf.py /etc/php/7.0/mods-available/apcu.ini -c ';' \
+if grep -q apc.enabled=0 /etc/php/7.1/mods-available/apcu.ini; then
+	tools/editconf.py /etc/php/7.1/mods-available/apcu.ini -c ';' \
 		apc.enabled=1
 fi
 
@@ -411,4 +411,4 @@ chmod +x /etc/cron.hourly/mailinabox-owncloud
 # ```
 
 # Enable PHP modules and restart PHP.
-restart_service php7.0-fpm
+restart_service php7.1-fpm
