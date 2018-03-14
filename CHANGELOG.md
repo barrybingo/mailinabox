@@ -4,10 +4,27 @@ CHANGELOG
 In Development
 --------------
 
+* A report of box activity, including sent/received mail totals and logins by user, is now emailed to the box's administrator user each week.
+* Update Roundcube to version 1.3.4 and Z-Push to version 2.3.9.
+* The undocumented feature for proxying web requests to another server now sets X-Forwarded-For.
+
+v0.26c (February 13, 2018)
+--------------------------
+
+Setup:
+
+* Upgrades from v0.21c (February 1, 2017) or earlier were broken because the intermediate versions of ownCloud used in setup were no longer available from ownCloud.
+* Some download errors had no output --- there is more output on error now.
+
 Control Panel:
 
 * The background service for the control panel was not restarting on updates, leaving the old version running. This was broken in v0.26 and is now fixed.
 * Installing your own TLS/SSL certificate had been broken since v0.24 because the new version of openssl became stricter about CSR generation parameters.
+* Fixed password length help text.
+
+Contacts/Calendar:
+
+* Upgraded Nextcloud from 12.0.3 to 12.0.5.
 
 v0.26b (January 25, 2018)
 -------------------------

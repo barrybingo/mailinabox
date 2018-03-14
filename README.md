@@ -59,7 +59,7 @@ by me:
 	$ curl -s https://keybase.io/joshdata/key.asc | gpg --import
 	gpg: key C10BDD81: public key "Joshua Tauberer <jt@occams.info>" imported
 
-	$ git verify-tag v0.26b
+	$ git verify-tag v0.26c
 	gpg: Signature made ..... using RSA key ID C10BDD81
 	gpg: Good signature from "Joshua Tauberer <jt@occams.info>"
 	gpg: WARNING: This key is not certified with a trusted signature!
@@ -72,7 +72,7 @@ and on my [personal homepage](https://razor.occams.info/). (Of course, if this r
 
 Checkout the tag corresponding to the most recent release:
 
-	$ git checkout v0.26b
+	$ git checkout v0.26c
 
 Begin the installation.
 
@@ -81,6 +81,12 @@ Begin the installation.
 For help, DO NOT contact me directly --- I don't do tech support by email or tweet (no exceptions).
 
 Post your question on the [discussion forum](https://discourse.mailinabox.email/) instead, where me and other Mail-in-a-Box users may be able to help you.
+
+Contributing and Development
+----------------------------
+
+Mail-in-a-Box is an open source project. Your contributions and pull requests are welcome. See [CONTRIBUTING](CONTRIBUTING.md) to get started. 
+
 
 The Acknowledgements
 --------------------
