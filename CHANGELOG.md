@@ -4,6 +4,14 @@ CHANGELOG
 In Development
 --------------
 
+* Starting with v0.28, TLS certificate provisioning wouldn't work on new boxes until the mailinabox setup command was run a second time because of a problem with the non-interactive setup.
+* Update to Nextcloud 13.0.5.
+* Update to Roundcube 1.3.7.
+* Update to Z-Push 2.4.4.
+
+v0.28 (July 30, 2018)
+---------------------
+
 System:
 
 * We now use EFF's `certbot` to provision TLS certificates (from Let's Encrypt) instead of our home-grown ACME library.
