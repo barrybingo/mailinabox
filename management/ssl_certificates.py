@@ -462,16 +462,9 @@ def post_install_func(env):
 		os.unlink(system_ssl_certificate)
 		os.symlink(ssl_certificate, system_ssl_certificate)
 
-		filenames = [ssl_private_key, system_ssl_certificate]
-		with open('/etc/pound/certs/ssl_certificate.pem', 'w') as outfile:
-    			for fname in filenames:
-        			with open(fname) as infile:
-            				outfile.write(infile.read())
-
 		# Restart postfix and dovecot so they pick up the new file.
 		shell('check_call', ["/usr/sbin/service", "postfix", "restart"])
 		shell('check_call', ["/usr/sbin/service", "dovecot", "restart"])
-		shell('check_call', ["/usr/sbin/service", "pound", "restart"])
 		ret.append("mail services restarted")
 
 		# The DANE TLSA record will remain valid so long as the private key
