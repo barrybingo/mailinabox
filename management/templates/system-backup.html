@@ -18,6 +18,7 @@
         <option value="local">{{hostname}}</option>
         <option value="rsync">rsync</option>
         <option value="s3">Amazon S3</option>
+        <option value="advanced">advanced</option>
       </select>
     </div>
   </div>
@@ -236,7 +237,10 @@ function show_custom_backup() {
           var host = hostpath.shift();
           $("#backup-target-s3-host").val(host);
           $("#backup-target-s3-path").val(hostpath.join('/'));
+        } else if (r.target.indexOf(":") !== -1) {
+          $("#backup-target-type").val("advanced");
         }
+
         toggle_form()
       })
 }
