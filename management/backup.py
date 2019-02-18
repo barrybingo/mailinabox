@@ -481,7 +481,7 @@ def list_target_files(config):
 			return ret
 
 		else:
-			raise ValueError(ret)
+			raise ValueError(listing)
 
 
 def backup_set_custom(env, target, target_user, target_pass, min_age):
