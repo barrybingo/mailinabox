@@ -105,8 +105,20 @@
       <input type="text" class="form-control" rows="1" id="backup-target-pass">
     </div>
   </div>
+  <!-- advanced -->
+  <div class="form-group backup-target-advanced">
+    <div class="col-sm-10 col-sm-offset-2">
+      <p>Backups using Duplicity with custom target_url and environmental variables.  You might need to create files in storage root with access tokens etc.  For advanced users only.
+    </div>
+  </div>
+  <div class="form-group backup-target-advanced">
+    <label for="backup-target-advanced-targeturl" class="col-sm-2 control-label">target_url</label>
+    <div class="col-sm-8">
+      <input type="text" placeholder="scheme://[user[:password]@]host[:port]/[/]path" class="form-control" rows="1" id="backup-target-advanced-targeturl">
+    </div>
+  </div>
   <!-- Common -->
-  <div class="form-group backup-target-local backup-target-rsync backup-target-s3">
+  <div class="form-group backup-target-local backup-target-rsync backup-target-s3 backup-target-advanced">
     <label for="min-age" class="col-sm-2 control-label">Days:</label>
     <div class="col-sm-8">
       <input type="number" class="form-control" rows="1" id="min-age">
@@ -138,7 +150,7 @@
 
 function toggle_form() {
   var target_type = $("#backup-target-type").val();
-  $(".backup-target-local, .backup-target-rsync, .backup-target-s3").hide();
+  $(".backup-target-local, .backup-target-rsync, .backup-target-s3, .backup-target-advanced").hide();
   $(".backup-target-" + target_type).show();
 }
 
@@ -239,6 +251,7 @@ function show_custom_backup() {
           $("#backup-target-s3-path").val(hostpath.join('/'));
         } else if (r.target.indexOf(":") !== -1) {
           $("#backup-target-type").val("advanced");
+          $("#backup-target-advanced-targeturl").val(r.target);
         }
 
         toggle_form()
@@ -259,7 +272,9 @@ function set_custom_backup() {
     target = "rsync://" + $("#backup-target-rsync-user").val() + "@" + $("#backup-target-rsync-host").val()
                                                                 + "/" + $("#backup-target-rsync-path").val();
     target_user = '';
-  }
+  } else
+    target = $("#backup-target-advanced-targeturl").val();
+
 
 
   var min_age = $("#min-age").val();
