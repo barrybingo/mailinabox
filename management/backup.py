@@ -83,7 +83,7 @@ def backup_status(env):
 	# with the list of backups we have. Track unmatched files so we know how much other
 	# space is used for those.
 	unmatched_file_size = 0
-	for fn, size in list_target_files(env):
+	for fn, size in list_target_files(config):
 		m = re.match(r"duplicity-(full|full-signatures|(inc|new-signatures)\.(?P<incbase>\d+T\d+Z)\.to)\.(?P<date>\d+T\d+Z)\.", fn)
 		if not m: continue # not a part of a current backup chain
 		key = m.group("date")
@@ -195,6 +195,14 @@ def get_passphrase(env):
 
 	return passphrase
 
+def get_config_envs(config):
+	env = {}
+	if "envs" in config and get_target_type(config) in config["envs"]:
+		for k,v in  config["envs"][get_target_type(config)].items():
+			env[k] = v
+
+	return env
+
 def get_env(env):
 	config = get_backup_config(env)
 
@@ -204,9 +212,7 @@ def get_env(env):
 		env["AWS_ACCESS_KEY_ID"] = config["target_user"]
 		env["AWS_SECRET_ACCESS_KEY"] = config["target_pass"]
 
-	if "envs" in config and get_target_type(config) in config["envs"]:
-		for k,v in  config["envs"][get_target_type(config)].items():
-			env[k] = v
+	env.update(get_config_envs(config))
 
 	return env
 
@@ -365,8 +371,7 @@ def run_duplicity_restore(args):
 		] + rsync_ssh_options + args,
 	get_env(env))
 
-def list_target_files(env):
-	config = get_backup_config(env)
+def list_target_files(config):
 	import urllib.parse
 	try:
 		target = urllib.parse.urlparse(config["target"])
@@ -456,13 +461,16 @@ def list_target_files(env):
 		return [(key.name[len(path):], key.size) for key in bucket.list(prefix=path)]
 
 	else:
+		env = load_environment()
+		env.update(get_config_envs(config))
+
 		this_path = os.path.dirname(os.path.abspath(__file__))
 		duplicity_target_ls = os.path.join(this_path, "duplicity_target_ls.py")
 
 		code, listing = shell('check_output', [
 			duplicity_target_ls,
 			config["target"],
-		], get_env(env), trap=True, capture_stderr=True)
+		], env, trap=True, capture_stderr=True)
 
 		if code == 0:
 			ret = []
@@ -493,7 +501,7 @@ def backup_set_custom(env, target, target_user, target_pass, min_age):
 		if config["target"] not in ("off", "local"):
 			# these aren't supported by the following function, which expects a full url in the target key,
 			# which is what is there except when loading the config prior to saving
-			list_target_files(env)
+			list_target_files(config)
 	except ValueError as e:
 		return str(e)
 
@@ -555,7 +563,7 @@ if __name__ == "__main__":
 
 	elif sys.argv[-1] == "--list":
 		# List the saved backup files.
-		for fn, size in list_target_files(load_environment()):
+		for fn, size in list_target_files(get_backup_config(load_environment())):
 			print("{}\t{}".format(fn, size))
 
 	elif sys.argv[-1] == "--status":
