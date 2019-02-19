@@ -112,11 +112,23 @@
     </div>
   </div>
   <div class="form-group backup-target-advanced">
-    <label for="backup-target-advanced-targeturl" class="col-sm-2 control-label">target_url</label>
+    <label for="backup-target-advanced-targeturl" class="col-sm-2 control-label">target_url:</label>
     <div class="col-sm-8">
       <input type="text" placeholder="scheme://[user[:password]@]host[:port]/[/]path" class="form-control" rows="1" id="backup-target-advanced-targeturl">
     </div>
   </div>
+  <div class="form-group backup-target-advanced">
+    <label for="backup-target-advanced-targeturl" class="col-sm-2 control-label">envs:</label>
+    <div class="col-sm-10 col-sm-offset-2">
+      <p>Bash style environmental variables for duplicity</p>
+      <div class="col-sm-8" id="advanced_env_var_list">
+      </div>
+      <div class="col-sm-8">
+        <button class='btn btn-primary' onclick='add_target_advanced_env(); return false;'>Add</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Common -->
   <div class="form-group backup-target-local backup-target-rsync backup-target-s3 backup-target-advanced">
     <label for="min-age" class="col-sm-2 control-label">Days:</label>
@@ -252,6 +264,13 @@ function show_custom_backup() {
         } else if (r.target.indexOf(":") !== -1) {
           $("#backup-target-type").val("advanced");
           $("#backup-target-advanced-targeturl").val(r.target);
+
+          $('#advanced_env_var_list').empty();
+          if ("envs" in r) {
+            for (var prop in r['envs']) {
+              add_target_advanced_env(prop + '=' + r['envs'][prop]);
+            }
+          }
         }
 
         toggle_form()
@@ -262,6 +281,7 @@ function set_custom_backup() {
   var target_type = $("#backup-target-type").val();
   var target_user = $("#backup-target-user").val();
   var target_pass = $("#backup-target-pass").val();
+  var target_envs = {};
 
   var target;
   if (target_type == "local" || target_type == "off")
@@ -272,8 +292,17 @@ function set_custom_backup() {
     target = "rsync://" + $("#backup-target-rsync-user").val() + "@" + $("#backup-target-rsync-host").val()
                                                                 + "/" + $("#backup-target-rsync-path").val();
     target_user = '';
-  } else
+  } else {
     target = $("#backup-target-advanced-targeturl").val();
+    $('.backup-target-advanced-env').each(function() {
+        var splitIndex = $(this).val().indexOf("=");
+        if (splitIndex >= 0)
+        {
+          var prop = $(this).val().substring(0, splitIndex);
+          target_envs[prop] = $(this).val().substring(splitIndex + 1);
+        }
+    });
+  }
 
 
 
@@ -285,7 +314,8 @@ function set_custom_backup() {
       target: target,
       target_user: target_user,
       target_pass: target_pass,
-      min_age: min_age
+      min_age: min_age,
+      target_envs: JSON.stringify(target_envs)
     },
     function(r) {
       // use .text() --- it's a text response, not html
@@ -296,5 +326,19 @@ function set_custom_backup() {
       show_modal_error("Backup configuration", $("<p/>").text(r));
     });
   return false;
+}
+
+function add_target_advanced_env(value) {
+  if (value == null)
+    value = '';
+
+  $('#advanced_env_var_list').append('<div class="input-group input-group-xs"> \
+    <input class="form-control backup-target-advanced-env" type="text" placeholder="VAR=some value" value="'+value+'"> \
+    <span class="input-group-addon"> \
+    <button type="button" class="btn btn-xs" onclick=\'$(this).parent().closest("div").remove();\' > \
+      <span class="glyphicon glyphicon-trash"></span> \
+    </button> \
+    </span> \
+  </div>');
 }
 </script>

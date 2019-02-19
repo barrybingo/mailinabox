@@ -197,8 +197,8 @@ def get_passphrase(env):
 
 def get_config_envs(config):
 	env = {}
-	if "envs" in config and get_target_type(config) in config["envs"]:
-		for k,v in  config["envs"][get_target_type(config)].items():
+	if "envs" in config:
+		for k,v in  config["envs"].items():
 			env[k] = v
 
 	return env
@@ -484,7 +484,7 @@ def list_target_files(config):
 			raise ValueError(listing)
 
 
-def backup_set_custom(env, target, target_user, target_pass, min_age):
+def backup_set_custom(env, target, target_user, target_pass, min_age, target_envs):
 	config = get_backup_config(env, for_save=True)
 
 	# min_age must be an int
@@ -495,6 +495,7 @@ def backup_set_custom(env, target, target_user, target_pass, min_age):
 	config["target_user"] = target_user
 	config["target_pass"] = target_pass
 	config["min_age_in_days"] = min_age
+	config["envs"] = target_envs
 
 	# Validate.
 	try:

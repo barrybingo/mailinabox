@@ -503,7 +503,8 @@ def backup_set_custom():
 		request.form.get('target', ''),
 		request.form.get('target_user', ''),
 		request.form.get('target_pass', ''),
-		request.form.get('min_age', '')
+		request.form.get('min_age', ''),
+		json.loads(request.form.get('target_envs', '{}'))
 	))
 
 @app.route('/system/privacy', methods=["GET"])
