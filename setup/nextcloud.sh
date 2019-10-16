@@ -25,11 +25,11 @@ InstallNextcloud() {
 	echo "Upgrading to Nextcloud version $version"
 	echo
 
+        # Download and verify
+        wget_verify https://download.nextcloud.com/server/releases/nextcloud-$version.zip $hash /tmp/nextcloud.zip
+
 	# Remove the current owncloud/Nextcloud
 	rm -rf /usr/local/lib/owncloud
-
-	# Download and verify
-	wget_verify https://download.nextcloud.com/server/releases/nextcloud-$version.zip $hash /tmp/nextcloud.zip
 
 	# Extract ownCloud/Nextcloud
 	unzip -q /tmp/nextcloud.zip -d /usr/local/lib
@@ -40,18 +40,18 @@ InstallNextcloud() {
 	# their github repositories.
 	mkdir -p /usr/local/lib/owncloud/apps
 
-	wget_verify https://github.com/nextcloud/contacts/releases/download/v3.1.1/contacts.tar.gz a06bd967197dcb03c94ec1dbd698c037018669e5 /tmp/contacts.tgz
+	wget_verify https://github.com/nextcloud/contacts/releases/download/v3.1.4/contacts.tar.gz 297cb38c0ba9ba7ad7b8b61108033af8d7eccd96 /tmp/contacts.tgz
 	tar xf /tmp/contacts.tgz -C /usr/local/lib/owncloud/apps/
 	rm /tmp/contacts.tgz
 
-	wget_verify https://github.com/nextcloud/calendar/releases/download/v1.6.5/calendar.tar.gz 79941255521a5172f7e4ce42dc7773838b5ede2f /tmp/calendar.tgz
+	wget_verify https://github.com/nextcloud/calendar/releases/download/v1.7.1/calendar.tar.gz bd7c846bad06da6d6ba04280f6fbf37ef846c2ad /tmp/calendar.tgz
 	tar xf /tmp/calendar.tgz -C /usr/local/lib/owncloud/apps/
 	rm /tmp/calendar.tgz
 
 	# Starting with Nextcloud 15, the app user_external is no longer included in Nextcloud core,
 	# we will install from their github repository.
 	if [[ $version =~ ^15 ]]; then
-		wget_verify https://github.com/nextcloud/user_external/releases/download/v0.6.3/user_external-0.6.3.tar.gz 0f756d35fef6b64a177d6a16020486b76ea5799c /tmp/user_external.tgz
+		wget_verify https://github.com/nextcloud/user_external/releases/download/v0.7.0/user_external-0.7.0.tar.gz 555a94811daaf5bdd336c5e48a78aa8567b86437 /tmp/user_external.tgz
 		tar -xf /tmp/user_external.tgz -C /usr/local/lib/owncloud/apps/
 		rm /tmp/user_external.tgz
 	fi
@@ -90,11 +90,26 @@ InstallNextcloud() {
 	fi
 }
 
-nextcloud_ver=15.0.8
-nextcloud_hash=4129d8d4021c435f2e86876225fb7f15adf764a3
-# Check if Nextcloud dir exist, and check if version matches nextcloud_ver (if either doesn't - install/upgrade)
-if [ ! -d /usr/local/lib/owncloud/ ] \
-		|| ! grep -q $nextcloud_ver /usr/local/lib/owncloud/version.php; then
+# Nextcloud Version to install. Checks are done down below to step through intermediate versions.
+nextcloud_ver=16.0.5
+nextcloud_hash=46e8ec989de9aad9967a5a54ddb84ce8b8e2c54c
+
+# Current Nextcloud Version, #1623
+# Checking /usr/local/lib/owncloud/version.php shows version of the Nextcloud application, not the DB
+# $STORAGE_ROOT/owncloud is kept together even during a backup.  It is better to rely on config.php than
+# version.php since the restore procedure can leave the system in a state where you have a newer Nextcloud
+# application version than the database.
+
+# If config.php exists, get version number, otherwise CURRENT_NEXTCLOUD_VER is empty.
+if [ -f "$STORAGE_ROOT/owncloud/config.php" ]; then
+	CURRENT_NEXTCLOUD_VER=$(php -r "include(\"$STORAGE_ROOT/owncloud/config.php\"); echo(\$CONFIG['version']);")
+else
+	CURRENT_NEXTCLOUD_VER=""
+fi
+
+# If the Nextcloud directory is missing (never been installed before, or the nextcloud version to be installed is different
+# from the version currently installed, do the install/upgrade
+if [ ! -d /usr/local/lib/owncloud/ ] || [[ ! ${CURRENT_NEXTCLOUD_VER} =~ ^$nextcloud_ver ]]; then
 
 	# Stop php-fpm if running. If theyre not running (which happens on a previously failed install), dont bail.
 	service php7.2-fpm stop &> /dev/null || /bin/true
@@ -115,26 +130,26 @@ if [ ! -d /usr/local/lib/owncloud/ ] \
 	fi
 
 	# If ownCloud or Nextcloud was previously installed....
-	if [ -e /usr/local/lib/owncloud/version.php ]; then
+	if [ ! -z ${CURRENT_NEXTCLOUD_VER} ]; then
 		# Database migrations from ownCloud are no longer possible because ownCloud cannot be run under
 		# PHP 7.
-		if grep -q "OC_VersionString = '[89]\." /usr/local/lib/owncloud/version.php; then
+		if [[ ${CURRENT_NEXTCLOUD_VER} =~ ^[89] ]]; then
 			echo "Upgrades from Mail-in-a-Box prior to v0.28 (dated July 30, 2018) with Nextcloud < 13.0.6 (you have ownCloud 8 or 9) are not supported. Upgrade to Mail-in-a-Box version v0.30 first. Setup aborting."
 			exit 1
-		fi
-		if grep -q "OC_VersionString = '1[012]\." /usr/local/lib/owncloud/version.php; then
+		elif [[ ${CURRENT_NEXTCLOUD_VER} =~ ^1[012] ]]; then
 			echo "Upgrades from Mail-in-a-Box prior to v0.28 (dated July 30, 2018) with Nextcloud < 13.0.6 (you have ownCloud 10, 11 or 12) are not supported. Upgrade to Mail-in-a-Box version v0.30 first. Setup aborting."
 			exit 1
-		fi
-		# If we are running Nextcloud 13, upgrade to Nextcloud 14
-		if grep -q "OC_VersionString = '13\." /usr/local/lib/owncloud/version.php; then
+		elif [[ ${CURRENT_NEXTCLOUD_VER} =~ ^13 ]]; then
+			# If we are running Nextcloud 13, upgrade to Nextcloud 14
 			InstallNextcloud 14.0.6 4e43a57340f04c2da306c8eea98e30040399ae5a
-
+			CURRENT_NEXTCLOUD_VER="14.0.6"
 		fi
-		# During the upgrade from Nextcloud 14 to 15, user_external may cause the upgrade to fail.
-		# We will disable it here before the upgrade and install it again after the upgrade.
-		if grep -q "OC_VersionString = '14\." /usr/local/lib/owncloud/version.php; then
+		if [[ ${CURRENT_NEXTCLOUD_VER} =~ ^14 ]]; then
+			# During the upgrade from Nextcloud 14 to 15, user_external may cause the upgrade to fail.
+			# We will disable it here before the upgrade and install it again after the upgrade.
 			hide_output sudo -u www-data php /usr/local/lib/owncloud/console.php app:disable user_external
+			InstallNextCloud 15.0.8 4129d8d4021c435f2e86876225fb7f15adf764a3
+			CURRENT_NEXTCLOUD_VER="15.0.8"
 		fi
 	fi
 
