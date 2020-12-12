@@ -341,7 +341,7 @@ function set_custom_backup() {
         + '@' + $('#backup-target-b2-bucket').val()
     target_user = '';
     target_pass = '';    
-  } else {
+  } else if (target_type == "advanced") {
     target = $("#backup-target-advanced-targeturl").val();
     $('.backup-target-advanced-env').each(function() {
         var splitIndex = $(this).val().indexOf("=");
