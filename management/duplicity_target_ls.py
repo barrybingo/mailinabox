@@ -16,7 +16,7 @@
 
 import sys
 from duplicity import log
-from duplicity import globals
+from duplicity import config
 from duplicity import backend
 
 def duplicity_ls(target_url):
@@ -25,7 +25,7 @@ def duplicity_ls(target_url):
         be = backend.get_backend(target_url)
         filenames = be.list()
 
-        globals.backend_retry_delay = 1
+        config.backend_retry_delay = 1
         infos = be.query_info(filenames)
 
         for name,info in sorted(infos.items(), key=lambda x: x[0]):
