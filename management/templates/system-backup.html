@@ -195,7 +195,7 @@
 
 function toggle_form() {
   var target_type = $("#backup-target-type").val();
-  $(".backup-target-local, .backup-target-rsync, .backup-target-s3, .backup-target-advanced .backup-target-b2").hide();
+  $(".backup-target-local, .backup-target-rsync, .backup-target-s3, .backup-target-advanced, .backup-target-b2").hide();
   $(".backup-target-" + target_type).show();
 
   init_inputs(target_type);
@@ -266,7 +266,7 @@ function show_system_backup() {
 }
 
 function show_custom_backup() {
-    $(".backup-target-local, .backup-target-rsync, .backup-target-s3, .backup-target-b2").hide();
+    $(".backup-target-local, .backup-target-rsync, .backup-target-s3, .backup-target-advanced, .backup-target-b2").hide();
     api(
       "/system/backup/config",
       "GET",
